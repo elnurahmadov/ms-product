@@ -1,0 +1,45 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2
+      author: elnur.ahmadov
+      changes:
+        - createTable:
+            tableName: product_images
+            schemaName: product
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: product_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_product_images_product
+                    references: product.products(id)
+                    deleteCascade: true
+              - column:
+                  name: url
+                  type: varchar(500)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: is_main
+                  type: boolean
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+      rollback:
+        - dropTable:
+            tableName: product_images
+            schemaName: product
