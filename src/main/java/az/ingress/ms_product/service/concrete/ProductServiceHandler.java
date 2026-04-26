@@ -7,11 +7,13 @@ import az.ingress.ms_product.dao.repository.ProductRepository;
 import az.ingress.ms_product.model.request.ProductRequestDto;
 import az.ingress.ms_product.model.response.ProductResponseDto;
 import az.ingress.ms_product.service.abstraction.ProductService;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,14 +45,29 @@ public class ProductServiceHandler implements ProductService {
 
         saveImages(product, request.getImageUrls());
 
-        log.info("Product created: {}, supplierId: {}", product.getId(), supplierId);
-        log.info("ActionLog.createProduct.info: param: {}, supplierId: {}", product.getId(), supplierId);
+        log.info("ActionLog.createProduct.info: created: {}, supplierId: {}", product.getId(), supplierId);
         return toResponseDto(product);
     }
 
+    @Transactional
     @Override
     public ProductResponseDto updateProduct(UUID productId, ProductRequestDto request, UUID supplierId) {
-        return null;
+        Product product = getProductByIdAndSupplierId(productId, supplierId);
+
+        product.setName(request.getName());
+        product.setDescription(request.getDescription());
+        product.setPrice(request.getPrice());
+        product.setStock(request.getStock());
+        product.setCategoryId(request.getCategoryId());
+        product.setStatus(PENDING);
+
+        product.getImages().clear();
+        saveImages(product, request.getImageUrls());
+
+        productRepository.save(product);
+
+        log.info("ActionLog.updateProduct.info: updated: {}, supplierId: {}", productId, supplierId);
+        return toResponseDto(product);
     }
 
     @Override
@@ -97,5 +114,10 @@ public class ProductServiceHandler implements ProductService {
                 .createdAt(product.getCreatedAt())
                 .updatedAt(product.getUpdatedAt())
                 .build();
+    }
+
+    private Product getProductByIdAndSupplierId(UUID productId, UUID supplierId) {
+        return productRepository.findByIdAndSupplierId(productId, supplierId)
+                .orElseThrow(() -> new EntityNotFoundException("Product not found: " + productId));
     }
 }
