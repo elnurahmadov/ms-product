@@ -8,6 +8,7 @@ import az.ingress.ms_product.mapper.ProductMapper;
 import az.ingress.ms_product.model.dto.ProductFilterDto;
 import az.ingress.ms_product.model.request.ProductRequestDto;
 import az.ingress.ms_product.model.response.ProductResponseDto;
+import az.ingress.ms_product.publisher.ProductEventPublisher;
 import az.ingress.ms_product.service.abstraction.ProductService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.criteria.Predicate;
@@ -38,6 +39,7 @@ public class ProductServiceHandler implements ProductService {
     private final ProductRepository productRepository;
     private final ProductImageRepository productImageRepository;
     private final ProductMapper productMapper;
+    private final ProductEventPublisher productEventPublisher;
 
     @Override
     public ProductResponseDto createProduct(ProductRequestDto request, UUID supplierId) {
@@ -54,6 +56,7 @@ public class ProductServiceHandler implements ProductService {
         productRepository.save(product);
 
         saveImages(product, request.getImageUrls());
+        productEventPublisher.publishProductCreated(product);
 
         log.info("ActionLog.createProduct.info: created: {}, supplierId: {}", product.getId(), supplierId);
         return productMapper.toResponseDto(product);

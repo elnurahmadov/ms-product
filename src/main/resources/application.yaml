@@ -50,5 +50,9 @@ spring:
 
 rabbitmq:
   queue:
-    product: PRODUCT_Q
-    product-dlq: PRODUCT_DLQ
+    product-approved: PRODUCT_APPROVED_QUEUE
+    product-approved-dlq: PRODUCT_APPROVED_QUEUE_DLQ
+    product-rejected: PRODUCT_REJECTED_QUEUE
+    product-rejected-dlq: PRODUCT_REJECTED_QUEUE_DLQ
+    product-created: PRODUCT_CREATED_QUEUE
+    product-created-dlq: PRODUCT_CREATED_QUEUE_DLQ
