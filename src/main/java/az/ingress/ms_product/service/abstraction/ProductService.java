@@ -1,5 +1,6 @@
 package az.ingress.ms_product.service.abstraction;
 
+import az.ingress.ms_product.model.dto.ProductFilterDto;
 import az.ingress.ms_product.model.request.ProductRequestDto;
 import az.ingress.ms_product.model.response.ProductResponseDto;
 import org.springframework.data.domain.Page;
@@ -16,4 +17,8 @@ public interface ProductService {
     void deleteProduct(UUID productId, UUID supplierId);
 
     Page<ProductResponseDto> getMyProducts(UUID supplierId, Pageable pageable);
+
+    Page<ProductResponseDto> getAll(ProductFilterDto filter);
+
+    ProductResponseDto getById(UUID id);
 }

@@ -1,5 +1,6 @@
 package az.ingress.ms_product.controller;
 
+import az.ingress.ms_product.model.dto.ProductFilterDto;
 import az.ingress.ms_product.model.request.ProductRequestDto;
 import az.ingress.ms_product.model.response.ProductResponseDto;
 import az.ingress.ms_product.service.abstraction.ProductService;
@@ -53,5 +54,15 @@ public class ProductController {
     public ResponseEntity<Page<ProductResponseDto>> getMyProducts(@RequestHeader("X-User-Id") UUID supplierId,
                                                                   Pageable pageable) {
         return ResponseEntity.ok(productService.getMyProducts(supplierId, pageable));
+    }
+
+    @GetMapping
+    public ResponseEntity<Page<ProductResponseDto>> getAll(ProductFilterDto filter) {
+        return ResponseEntity.ok(productService.getAll(filter));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ProductResponseDto> getById(@PathVariable UUID id) {
+        return ResponseEntity.ok(productService.getById(id));
     }
 }
