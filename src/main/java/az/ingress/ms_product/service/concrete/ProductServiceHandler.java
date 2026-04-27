@@ -5,14 +5,19 @@ import az.ingress.ms_product.dao.entity.ProductImage;
 import az.ingress.ms_product.dao.repository.ProductImageRepository;
 import az.ingress.ms_product.dao.repository.ProductRepository;
 import az.ingress.ms_product.mapper.ProductMapper;
+import az.ingress.ms_product.model.dto.ProductFilterDto;
 import az.ingress.ms_product.model.request.ProductRequestDto;
 import az.ingress.ms_product.model.response.ProductResponseDto;
 import az.ingress.ms_product.service.abstraction.ProductService;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,7 +25,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import static az.ingress.ms_product.model.enums.ProductStatus.APPROVED;
 import static az.ingress.ms_product.model.enums.ProductStatus.PENDING;
+import static org.springframework.data.domain.Sort.Direction.ASC;
+import static org.springframework.data.domain.Sort.Direction.DESC;
 
 @Slf4j
 @Service
@@ -86,6 +94,21 @@ public class ProductServiceHandler implements ProductService {
                 .map(productMapper::toResponseDto);
     }
 
+    @Override
+    public Page<ProductResponseDto> getAll(ProductFilterDto filter) {
+        Pageable pageable = buildPageable(filter);
+        Specification<Product> spec = buildSpecification(filter);
+        return productRepository.findAll(spec, pageable)
+                .map(productMapper::toResponseDto);
+    }
+
+    @Override
+    public ProductResponseDto getById(UUID productId) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new EntityNotFoundException("Product not found: " + productId));
+        return productMapper.toResponseDto(product);
+    }
+
     private void saveImages(Product product, List<String> imageUrls) {
         if (imageUrls == null || imageUrls.isEmpty()) return;
 
@@ -104,5 +127,44 @@ public class ProductServiceHandler implements ProductService {
     private Product getProductByIdAndSupplierId(UUID productId, UUID supplierId) {
         return productRepository.findByIdAndSupplierId(productId, supplierId)
                 .orElseThrow(() -> new EntityNotFoundException("Product not found: " + productId));
+    }
+
+    private Pageable buildPageable(ProductFilterDto filter) {
+        Sort.Direction direction = filter.getSortDirection().equalsIgnoreCase("ASC")
+                ? ASC
+                : DESC;
+
+        Sort sort = Sort.by(direction, filter.getSortBy());
+
+        return PageRequest.of(filter.getPage(), filter.getSize(), sort);
+    }
+
+    private Specification<Product> buildSpecification(ProductFilterDto filter) {
+        return (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            predicates.add(cb.equal(root.get("status"), APPROVED));
+
+            if (filter.getName() != null && !filter.getName().isBlank()) {
+                predicates.add(cb.like(
+                        cb.lower(root.get("name")),
+                        "%" + filter.getName().toLowerCase() + "%"
+                ));
+            }
+
+            if (filter.getCategoryId() != null) {
+                predicates.add(cb.equal(root.get("categoryId"), filter.getCategoryId()));
+            }
+
+            if (filter.getMinPrice() != null) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("price"), filter.getMinPrice()));
+            }
+
+            if (filter.getMaxPrice() != null) {
+                predicates.add(cb.lessThanOrEqualTo(root.get("price"), filter.getMaxPrice()));
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
     }
 }
