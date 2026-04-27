@@ -5,7 +5,11 @@ import az.ingress.ms_product.model.response.ProductResponseDto;
 import az.ingress.ms_product.service.abstraction.ProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -36,5 +40,18 @@ public class ProductController {
                                                             @RequestBody @Valid ProductRequestDto request,
                                                             @RequestHeader("X-User-Id") UUID supplierId) {
         return ResponseEntity.ok(productService.updateProduct(id, request, supplierId));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteProduct(@PathVariable UUID id,
+                                              @RequestHeader("X-User-Id") UUID supplierId) {
+        productService.deleteProduct(id, supplierId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/my")
+    public ResponseEntity<Page<ProductResponseDto>> getMyProducts(@RequestHeader("X-User-Id") UUID supplierId,
+                                                                  Pageable pageable) {
+        return ResponseEntity.ok(productService.getMyProducts(supplierId, pageable));
     }
 }

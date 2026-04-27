@@ -4,6 +4,7 @@ import az.ingress.ms_product.dao.entity.Product;
 import az.ingress.ms_product.dao.entity.ProductImage;
 import az.ingress.ms_product.dao.repository.ProductImageRepository;
 import az.ingress.ms_product.dao.repository.ProductRepository;
+import az.ingress.ms_product.mapper.ProductMapper;
 import az.ingress.ms_product.model.request.ProductRequestDto;
 import az.ingress.ms_product.model.response.ProductResponseDto;
 import az.ingress.ms_product.service.abstraction.ProductService;
@@ -28,6 +29,7 @@ public class ProductServiceHandler implements ProductService {
 
     private final ProductRepository productRepository;
     private final ProductImageRepository productImageRepository;
+    private final ProductMapper productMapper;
 
     @Override
     public ProductResponseDto createProduct(ProductRequestDto request, UUID supplierId) {
@@ -46,7 +48,7 @@ public class ProductServiceHandler implements ProductService {
         saveImages(product, request.getImageUrls());
 
         log.info("ActionLog.createProduct.info: created: {}, supplierId: {}", product.getId(), supplierId);
-        return toResponseDto(product);
+        return productMapper.toResponseDto(product);
     }
 
     @Transactional
@@ -67,17 +69,21 @@ public class ProductServiceHandler implements ProductService {
         productRepository.save(product);
 
         log.info("ActionLog.updateProduct.info: updated: {}, supplierId: {}", productId, supplierId);
-        return toResponseDto(product);
+        return productMapper.toResponseDto(product);
     }
 
+    @Transactional
     @Override
     public void deleteProduct(UUID productId, UUID supplierId) {
-
+        Product product = getProductByIdAndSupplierId(productId, supplierId);
+        productRepository.delete(product);
+        log.info("ActionLog.deleteProduct.info: deleted: {}, supplierId: {}", productId, supplierId);
     }
 
     @Override
     public Page<ProductResponseDto> getMyProducts(UUID supplierId, Pageable pageable) {
-        return null;
+        return productRepository.findAllBySupplierId(supplierId, pageable)
+                .map(productMapper::toResponseDto);
     }
 
     private void saveImages(Product product, List<String> imageUrls) {
@@ -93,27 +99,6 @@ public class ProductServiceHandler implements ProductService {
         }
         productImageRepository.saveAll(productImageList);
         product.getImages().addAll(productImageList);
-    }
-
-    private ProductResponseDto toResponseDto(Product product) {
-        List<String> imageUrls = product.getImages().stream()
-                .map(ProductImage::getUrl)
-                .toList();
-
-        return ProductResponseDto.builder()
-                .id(product.getId())
-                .name(product.getName())
-                .description(product.getDescription())
-                .price(product.getPrice())
-                .stock(product.getStock())
-                .status(product.getStatus())
-                .supplierId(product.getSupplierId())
-                .categoryId(product.getCategoryId())
-                .isSponsored(product.getIsSponsored())
-                .imageUrls(imageUrls)
-                .createdAt(product.getCreatedAt())
-                .updatedAt(product.getUpdatedAt())
-                .build();
     }
 
     private Product getProductByIdAndSupplierId(UUID productId, UUID supplierId) {
