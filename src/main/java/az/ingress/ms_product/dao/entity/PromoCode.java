@@ -47,7 +47,6 @@ public class PromoCode {
         isActive = true;
     }
 
-
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof PromoCode that)) return false;

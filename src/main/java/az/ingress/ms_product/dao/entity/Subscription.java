@@ -61,7 +61,6 @@ public class Subscription {
         isActive = true;
     }
 
-
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof Subscription that)) return false;

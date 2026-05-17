@@ -4,7 +4,6 @@ import az.ingress.ms_product.dao.entity.Product;
 import az.ingress.ms_product.dao.repository.ProductRepository;
 import az.ingress.ms_product.exception.NotFoundException;
 import az.ingress.ms_product.mapper.ProductMapper;
-import az.ingress.ms_product.model.enums.ProductStatus;
 import az.ingress.ms_product.model.response.ProductResponseDto;
 import az.ingress.ms_product.publisher.ProductEventPublisher;
 import az.ingress.ms_product.service.abstraction.AdminProductService;
@@ -18,6 +17,9 @@ import java.util.UUID;
 
 import static az.ingress.ms_product.exception.ExceptionConstants.PRODUCT_NOT_FOUND_CODE;
 import static az.ingress.ms_product.exception.ExceptionConstants.PRODUCT_NOT_FOUND_MESSAGE;
+import static az.ingress.ms_product.model.enums.ProductStatus.APPROVED;
+import static az.ingress.ms_product.model.enums.ProductStatus.PENDING;
+import static az.ingress.ms_product.model.enums.ProductStatus.REJECTED;
 
 @Slf4j
 @Service
@@ -30,14 +32,14 @@ public class AdminProductServiceHandler implements AdminProductService {
 
     @Override
     public Page<ProductResponseDto> getPendingProducts(Pageable pageable) {
-        return productRepository.findAllByStatus(ProductStatus.PENDING, pageable)
+        return productRepository.findAllByStatus(PENDING, pageable)
                 .map(productMapper::toResponseDto);
     }
 
     @Override
     public ProductResponseDto verify(UUID productId) {
         Product product = getProductById(productId);
-        product.setStatus(ProductStatus.APPROVED);
+        product.setStatus(APPROVED);
         productRepository.save(product);
 
         productEventPublisher.publishProductApproved(product);
@@ -49,7 +51,7 @@ public class AdminProductServiceHandler implements AdminProductService {
     @Override
     public ProductResponseDto reject(UUID productId) {
         Product product = getProductById(productId);
-        product.setStatus(ProductStatus.REJECTED);
+        product.setStatus(REJECTED);
         productRepository.save(product);
 
         productEventPublisher.publishProductRejected(product);
