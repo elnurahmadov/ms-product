@@ -110,10 +110,13 @@ public class ProductServiceHandler implements ProductService {
     @Override
     public ProductResponseDto getById(UUID productId) {
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new NotFoundException(
-                        PRODUCT_NOT_FOUND_MESSAGE.formatted(productId),
-                        PRODUCT_NOT_FOUND_CODE
-                ));
+                .orElseThrow(() -> {
+                    log.error("ActionLog.getById.error: productId={}", productId);
+                    return new NotFoundException(
+                            PRODUCT_NOT_FOUND_MESSAGE.formatted(productId),
+                            PRODUCT_NOT_FOUND_CODE
+                    );
+                });
         return productMapper.toResponseDto(product);
     }
 
@@ -134,10 +137,13 @@ public class ProductServiceHandler implements ProductService {
 
     private Product getProductByIdAndSupplierId(UUID productId, UUID supplierId) {
         return productRepository.findByIdAndSupplierId(productId, supplierId)
-                .orElseThrow(() -> new NotFoundException(
-                        PRODUCT_NOT_FOUND_MESSAGE.formatted(productId),
-                        PRODUCT_NOT_FOUND_CODE
-                ));
+                .orElseThrow(() -> {
+                    log.error("ActionLog.getProductByIdAndSupplierId.error: productId={}, supplierId={}", productId, supplierId);
+                    return new NotFoundException(
+                            PRODUCT_NOT_FOUND_MESSAGE.formatted(productId),
+                            PRODUCT_NOT_FOUND_CODE
+                    );
+                });
     }
 
     private Pageable buildPageable(ProductFilterDto filter) {

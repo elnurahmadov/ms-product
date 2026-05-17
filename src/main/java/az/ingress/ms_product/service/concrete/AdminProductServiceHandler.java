@@ -60,9 +60,12 @@ public class AdminProductServiceHandler implements AdminProductService {
 
     private Product getProductById(UUID productId) {
         return productRepository.findById(productId)
-                .orElseThrow(() -> new NotFoundException(
-                        PRODUCT_NOT_FOUND_MESSAGE.formatted(productId),
-                        PRODUCT_NOT_FOUND_CODE
-                ));
+                .orElseThrow(() -> {
+                    log.error("ActionLog.getProductById.error: productId={}", productId);
+                    return new NotFoundException(
+                            PRODUCT_NOT_FOUND_MESSAGE.formatted(productId),
+                            PRODUCT_NOT_FOUND_CODE
+                    );
+                });
     }
 }
