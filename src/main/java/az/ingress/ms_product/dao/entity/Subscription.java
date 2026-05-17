@@ -17,6 +17,7 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.UUID;
 
 import static jakarta.persistence.FetchType.LAZY;
@@ -58,5 +59,17 @@ public class Subscription {
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         isActive = true;
+    }
+
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof Subscription that)) return false;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
     }
 }

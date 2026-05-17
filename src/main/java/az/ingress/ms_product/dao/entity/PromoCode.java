@@ -13,6 +13,7 @@ import lombok.Setter;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.UUID;
 
 @Getter
@@ -44,5 +45,17 @@ public class PromoCode {
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         isActive = true;
+    }
+
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof PromoCode that)) return false;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
     }
 }

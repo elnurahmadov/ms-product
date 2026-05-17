@@ -4,13 +4,13 @@ import az.ingress.ms_product.dao.entity.Product;
 import az.ingress.ms_product.dao.entity.ProductImage;
 import az.ingress.ms_product.dao.repository.ProductImageRepository;
 import az.ingress.ms_product.dao.repository.ProductRepository;
+import az.ingress.ms_product.exception.NotFoundException;
 import az.ingress.ms_product.mapper.ProductMapper;
 import az.ingress.ms_product.model.dto.ProductFilterDto;
 import az.ingress.ms_product.model.request.ProductRequestDto;
 import az.ingress.ms_product.model.response.ProductResponseDto;
 import az.ingress.ms_product.publisher.ProductEventPublisher;
 import az.ingress.ms_product.service.abstraction.ProductService;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +26,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import static az.ingress.ms_product.exception.ExceptionConstants.PRODUCT_NOT_FOUND_CODE;
+import static az.ingress.ms_product.exception.ExceptionConstants.PRODUCT_NOT_FOUND_MESSAGE;
 import static az.ingress.ms_product.model.enums.ProductStatus.APPROVED;
 import static az.ingress.ms_product.model.enums.ProductStatus.PENDING;
 import static org.springframework.data.domain.Sort.Direction.ASC;
@@ -108,7 +110,10 @@ public class ProductServiceHandler implements ProductService {
     @Override
     public ProductResponseDto getById(UUID productId) {
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new EntityNotFoundException("Product not found: " + productId));
+                .orElseThrow(() -> new NotFoundException(
+                        PRODUCT_NOT_FOUND_MESSAGE.formatted(productId),
+                        PRODUCT_NOT_FOUND_CODE
+                ));
         return productMapper.toResponseDto(product);
     }
 
@@ -129,7 +134,10 @@ public class ProductServiceHandler implements ProductService {
 
     private Product getProductByIdAndSupplierId(UUID productId, UUID supplierId) {
         return productRepository.findByIdAndSupplierId(productId, supplierId)
-                .orElseThrow(() -> new EntityNotFoundException("Product not found: " + productId));
+                .orElseThrow(() -> new NotFoundException(
+                        PRODUCT_NOT_FOUND_MESSAGE.formatted(productId),
+                        PRODUCT_NOT_FOUND_CODE
+                ));
     }
 
     private Pageable buildPageable(ProductFilterDto filter) {

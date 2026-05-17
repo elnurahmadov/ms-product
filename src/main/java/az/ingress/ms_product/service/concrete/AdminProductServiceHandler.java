@@ -2,12 +2,12 @@ package az.ingress.ms_product.service.concrete;
 
 import az.ingress.ms_product.dao.entity.Product;
 import az.ingress.ms_product.dao.repository.ProductRepository;
+import az.ingress.ms_product.exception.NotFoundException;
 import az.ingress.ms_product.mapper.ProductMapper;
 import az.ingress.ms_product.model.enums.ProductStatus;
 import az.ingress.ms_product.model.response.ProductResponseDto;
 import az.ingress.ms_product.publisher.ProductEventPublisher;
 import az.ingress.ms_product.service.abstraction.AdminProductService;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -15,6 +15,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
+
+import static az.ingress.ms_product.exception.ExceptionConstants.PRODUCT_NOT_FOUND_CODE;
+import static az.ingress.ms_product.exception.ExceptionConstants.PRODUCT_NOT_FOUND_MESSAGE;
 
 @Slf4j
 @Service
@@ -57,6 +60,9 @@ public class AdminProductServiceHandler implements AdminProductService {
 
     private Product getProductById(UUID productId) {
         return productRepository.findById(productId)
-                .orElseThrow(() -> new EntityNotFoundException("Product not found: " + productId));
+                .orElseThrow(() -> new NotFoundException(
+                        PRODUCT_NOT_FOUND_MESSAGE.formatted(productId),
+                        PRODUCT_NOT_FOUND_CODE
+                ));
     }
 }
