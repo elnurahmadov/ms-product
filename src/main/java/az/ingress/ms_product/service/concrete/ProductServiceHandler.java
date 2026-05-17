@@ -77,7 +77,6 @@ public class ProductServiceHandler implements ProductService {
         return productMapper.toResponseDto(product);
     }
 
-    @Transactional
     @Override
     public void deleteProduct(UUID productId, UUID supplierId) {
         Product product = getProductByIdAndSupplierId(productId, supplierId);
