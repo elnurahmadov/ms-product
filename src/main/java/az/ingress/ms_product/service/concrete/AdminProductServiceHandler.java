@@ -2,7 +2,6 @@ package az.ingress.ms_product.service.concrete;
 
 import az.ingress.ms_product.dao.entity.Product;
 import az.ingress.ms_product.dao.repository.ProductRepository;
-import az.ingress.ms_product.exception.NotFoundException;
 import az.ingress.ms_product.mapper.ProductMapper;
 import az.ingress.ms_product.model.response.ProductResponseDto;
 import az.ingress.ms_product.publisher.ProductEventPublisher;
@@ -15,8 +14,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 
-import static az.ingress.ms_product.exception.ExceptionConstants.PRODUCT_NOT_FOUND_CODE;
-import static az.ingress.ms_product.exception.ExceptionConstants.PRODUCT_NOT_FOUND_MESSAGE;
 import static az.ingress.ms_product.model.enums.ProductStatus.APPROVED;
 import static az.ingress.ms_product.model.enums.ProductStatus.PENDING;
 import static az.ingress.ms_product.model.enums.ProductStatus.REJECTED;
@@ -29,6 +26,7 @@ public class AdminProductServiceHandler implements AdminProductService {
     private final ProductRepository productRepository;
     private final ProductEventPublisher productEventPublisher;
     private final ProductMapper productMapper;
+    private final ProductServiceHandler productServiceHandler;
 
     @Override
     public Page<ProductResponseDto> getPendingProducts(Pageable pageable) {
@@ -38,7 +36,7 @@ public class AdminProductServiceHandler implements AdminProductService {
 
     @Override
     public ProductResponseDto verify(UUID productId) {
-        Product product = getProductById(productId);
+        Product product = productServiceHandler.fetchProductIfExist(productId);
         product.setStatus(APPROVED);
         productRepository.save(product);
 
@@ -50,7 +48,7 @@ public class AdminProductServiceHandler implements AdminProductService {
 
     @Override
     public ProductResponseDto reject(UUID productId) {
-        Product product = getProductById(productId);
+        Product product = productServiceHandler.fetchProductIfExist(productId);
         product.setStatus(REJECTED);
         productRepository.save(product);
 
@@ -58,16 +56,5 @@ public class AdminProductServiceHandler implements AdminProductService {
 
         log.info("Product rejected: {}", productId);
         return productMapper.toResponseDto(product);
-    }
-
-    private Product getProductById(UUID productId) {
-        return productRepository.findById(productId)
-                .orElseThrow(() -> {
-                    log.error("ActionLog.getProductById.error: productId={}", productId);
-                    return new NotFoundException(
-                            PRODUCT_NOT_FOUND_MESSAGE.formatted(productId),
-                            PRODUCT_NOT_FOUND_CODE
-                    );
-                });
     }
 }

@@ -100,15 +100,7 @@ public class ProductServiceHandler implements ProductService {
 
     @Override
     public ProductResponseDto getById(UUID productId) {
-        Product product = productRepository.findById(productId)
-                .orElseThrow(() -> {
-                    log.error("ActionLog.getById.error: productId={}", productId);
-                    return new NotFoundException(
-                            PRODUCT_NOT_FOUND_MESSAGE.formatted(productId),
-                            PRODUCT_NOT_FOUND_CODE
-                    );
-                });
-        return productMapper.toResponseDto(product);
+        return productMapper.toResponseDto(fetchProductIfExist(productId));
     }
 
     private void saveImages(Product product, List<String> imageUrls) {
@@ -174,5 +166,16 @@ public class ProductServiceHandler implements ProductService {
 
             return cb.and(predicates.toArray(new Predicate[0]));
         };
+    }
+
+    Product fetchProductIfExist(UUID productId) {
+        return productRepository.findById(productId)
+                .orElseThrow(() -> {
+                    log.error("ActionLog.fetchProductIfExist.error: productId={}", productId);
+                    return new NotFoundException(
+                            PRODUCT_NOT_FOUND_MESSAGE.formatted(productId),
+                            PRODUCT_NOT_FOUND_CODE
+                    );
+                });
     }
 }
