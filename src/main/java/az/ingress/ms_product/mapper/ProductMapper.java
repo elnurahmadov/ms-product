@@ -4,15 +4,14 @@ import az.ingress.ms_product.dao.entity.Product;
 import az.ingress.ms_product.dao.entity.ProductImage;
 import az.ingress.ms_product.model.request.ProductRequestDto;
 import az.ingress.ms_product.model.response.ProductResponseDto;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.UUID;
 
 import static az.ingress.ms_product.model.enums.ProductStatus.PENDING;
 
-@Component
-public class ProductMapper {
+public enum ProductMapper {
+    PRODUCT_MAPPER;
 
     public ProductResponseDto toResponseDto(Product product) {
         List<String> imageUrls = product.getImages().stream()

@@ -2,7 +2,6 @@ package az.ingress.ms_product.service.concrete;
 
 import az.ingress.ms_product.dao.entity.Product;
 import az.ingress.ms_product.dao.repository.ProductRepository;
-import az.ingress.ms_product.mapper.ProductMapper;
 import az.ingress.ms_product.model.response.ProductResponseDto;
 import az.ingress.ms_product.publisher.ProductEventPublisher;
 import az.ingress.ms_product.service.abstraction.AdminProductService;
@@ -14,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 
+import static az.ingress.ms_product.mapper.ProductMapper.PRODUCT_MAPPER;
 import static az.ingress.ms_product.model.enums.ProductStatus.APPROVED;
 import static az.ingress.ms_product.model.enums.ProductStatus.PENDING;
 import static az.ingress.ms_product.model.enums.ProductStatus.REJECTED;
@@ -25,13 +25,12 @@ public class AdminProductServiceHandler implements AdminProductService {
 
     private final ProductRepository productRepository;
     private final ProductEventPublisher productEventPublisher;
-    private final ProductMapper productMapper;
     private final ProductServiceHandler productServiceHandler;
 
     @Override
     public Page<ProductResponseDto> getPendingProducts(Pageable pageable) {
         return productRepository.findAllByStatus(PENDING, pageable)
-                .map(productMapper::toResponseDto);
+                .map(PRODUCT_MAPPER::toResponseDto);
     }
 
     @Override
@@ -43,7 +42,7 @@ public class AdminProductServiceHandler implements AdminProductService {
         productEventPublisher.publishProductApproved(product);
 
         log.info("Product approved: {}", productId);
-        return productMapper.toResponseDto(product);
+        return PRODUCT_MAPPER.toResponseDto(product);
     }
 
     @Override
@@ -55,7 +54,7 @@ public class AdminProductServiceHandler implements AdminProductService {
         productEventPublisher.publishProductRejected(product);
 
         log.info("Product rejected: {}", productId);
-        return productMapper.toResponseDto(product);
+        return PRODUCT_MAPPER.toResponseDto(product);
     }
 
     @Override

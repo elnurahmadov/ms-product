@@ -5,7 +5,6 @@ import az.ingress.ms_product.dao.entity.ProductImage;
 import az.ingress.ms_product.dao.repository.ProductImageRepository;
 import az.ingress.ms_product.dao.repository.ProductRepository;
 import az.ingress.ms_product.exception.NotFoundException;
-import az.ingress.ms_product.mapper.ProductMapper;
 import az.ingress.ms_product.model.dto.ProductFilterDto;
 import az.ingress.ms_product.model.request.ProductRequestDto;
 import az.ingress.ms_product.model.response.ProductResponseDto;
@@ -28,6 +27,7 @@ import java.util.UUID;
 
 import static az.ingress.ms_product.exception.ExceptionConstants.PRODUCT_NOT_FOUND_CODE;
 import static az.ingress.ms_product.exception.ExceptionConstants.PRODUCT_NOT_FOUND_MESSAGE;
+import static az.ingress.ms_product.mapper.ProductMapper.PRODUCT_MAPPER;
 import static az.ingress.ms_product.model.enums.ProductStatus.APPROVED;
 import static az.ingress.ms_product.model.enums.ProductStatus.PENDING;
 import static org.springframework.data.domain.Sort.Direction.ASC;
@@ -40,20 +40,19 @@ public class ProductServiceHandler implements ProductService {
 
     private final ProductRepository productRepository;
     private final ProductImageRepository productImageRepository;
-    private final ProductMapper productMapper;
     private final ProductEventPublisher productEventPublisher;
 
     @Transactional
     @Override
     public ProductResponseDto createProduct(ProductRequestDto request, UUID supplierId) {
-        Product product = productMapper.toEntity(request, supplierId);
+        Product product = PRODUCT_MAPPER.toEntity(request, supplierId);
 
         productRepository.save(product);
         saveImages(product, request.getImageUrls());
         productEventPublisher.publishProductCreated(product);
 
         log.info("ActionLog.createProduct.info: created: {}, supplierId: {}", product.getId(), supplierId);
-        return productMapper.toResponseDto(product);
+        return PRODUCT_MAPPER.toResponseDto(product);
     }
 
     @Transactional
@@ -74,7 +73,7 @@ public class ProductServiceHandler implements ProductService {
         productRepository.save(product);
 
         log.info("ActionLog.updateProduct.info: updated: {}, supplierId: {}", productId, supplierId);
-        return productMapper.toResponseDto(product);
+        return PRODUCT_MAPPER.toResponseDto(product);
     }
 
     @Override
@@ -87,7 +86,7 @@ public class ProductServiceHandler implements ProductService {
     @Override
     public Page<ProductResponseDto> getMyProducts(UUID supplierId, Pageable pageable) {
         return productRepository.findAllBySupplierId(supplierId, pageable)
-                .map(productMapper::toResponseDto);
+                .map(PRODUCT_MAPPER::toResponseDto);
     }
 
     @Override
@@ -95,12 +94,12 @@ public class ProductServiceHandler implements ProductService {
         Pageable pageable = buildPageable(filter);
         Specification<Product> spec = buildSpecification(filter);
         return productRepository.findAll(spec, pageable)
-                .map(productMapper::toResponseDto);
+                .map(PRODUCT_MAPPER::toResponseDto);
     }
 
     @Override
     public ProductResponseDto getById(UUID productId) {
-        return productMapper.toResponseDto(fetchProductIfExist(productId));
+        return PRODUCT_MAPPER.toResponseDto(fetchProductIfExist(productId));
     }
 
     private void saveImages(Product product, List<String> imageUrls) {
