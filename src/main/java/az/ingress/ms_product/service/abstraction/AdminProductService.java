@@ -13,4 +13,6 @@ public interface AdminProductService {
     @Nullable ProductResponseDto verify(UUID id);
 
     @Nullable ProductResponseDto reject(UUID id);
+
+    void deleteAllRejectedProducts();
 }

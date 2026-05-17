@@ -26,4 +26,6 @@ public interface ProductRepository extends JpaRepository<Product, UUID>, JpaSpec
 
     @EntityGraph(attributePaths = "images")
     Optional<Product> findByIdAndSupplierId(UUID id, UUID supplierId);
+
+    void deleteAllByStatus(ProductStatus productStatus);
 }

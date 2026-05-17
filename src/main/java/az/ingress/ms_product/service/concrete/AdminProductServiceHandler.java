@@ -57,4 +57,9 @@ public class AdminProductServiceHandler implements AdminProductService {
         log.info("Product rejected: {}", productId);
         return productMapper.toResponseDto(product);
     }
+
+    @Override
+    public void deleteAllRejectedProducts() {
+        productRepository.deleteAllByStatus(REJECTED);
+    }
 }
