@@ -43,20 +43,12 @@ public class ProductServiceHandler implements ProductService {
     private final ProductMapper productMapper;
     private final ProductEventPublisher productEventPublisher;
 
+    @Transactional
     @Override
     public ProductResponseDto createProduct(ProductRequestDto request, UUID supplierId) {
-        Product product = new Product();
-        product.setName(request.getName());
-        product.setDescription(request.getDescription());
-        product.setPrice(request.getPrice());
-        product.setStock(request.getStock());
-        product.setCategoryId(request.getCategoryId());
-        product.setSupplierId(supplierId);
-        product.setStatus(PENDING);
-        product.setIsSponsored(false);
+        Product product = productMapper.toEntity(request, supplierId);
 
         productRepository.save(product);
-
         saveImages(product, request.getImageUrls());
         productEventPublisher.publishProductCreated(product);
 

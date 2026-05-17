@@ -23,6 +23,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 import static jakarta.persistence.CascadeType.ALL;
+import static jakarta.persistence.FetchType.LAZY;
 
 @Entity
 @Getter
@@ -59,7 +60,7 @@ public class Product {
     @Column(name = "is_sponsored", nullable = false)
     private Boolean isSponsored;
 
-    @OneToMany(mappedBy = "product", cascade = ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "product", cascade = ALL, orphanRemoval = true, fetch = LAZY)
     private List<ProductImage> images = new ArrayList<>();
 
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -70,8 +71,9 @@ public class Product {
 
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now();
+        createdAt = now;
+        updatedAt = now;
     }
 
     @PreUpdate
